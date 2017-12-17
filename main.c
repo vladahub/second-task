@@ -1,127 +1,94 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct bkt
+struct Square
 {
-    int number;
-    char element;
-    struct bkt* prev;
-    struct bkt* next;
-} bkt;
+    struct Square* next;
+    struct Square* prev;
 
-struct bkt* new_list()
+    struct Square* left;
+    struct Square* right;
+    struct Square* up;
+    struct Square* down;
+
+    int x;
+    int y;
+    char color;
+} Square;
+
+struct Square* new_square()
 {
-    struct bkt* root = (struct bkt*)malloc(sizeof(struct bkt));
+    struct Square* root = (struct Square*)malloc(sizeof(struct Square));
     root->next = NULL;
     root->prev = NULL;
     return root;
 }
 
-void print_list(struct bkt* root)
-{
-     if (!root -> next)
-     {
-         return;
-     }
-     struct bkt* prom = root -> next;
-     while (prom->next)
-    {
-        printf("%c", prom -> element);
-        prom = prom -> next;
-    }
-}
-int push (struct bkt* root, char bracket)
+int add_square (struct Square* root, int x, int y, char color, int m);
 {
     if (!root) return 1;
-    struct bkt* prom = root;
+    struct Square* prom = root;
     while (prom->next)
     {
         prom = prom->next;
     }
-    if ((bracket == '(') || (bracket == '{'))
+    struct Square* add = (struct Square*)malloc(sizeof(struct Square));
+
+        add->left = NULL;
+        add->right = NULL;
+        add->up= NULL;
+        add->down = NULL;
+
+    if (color == '.')
+    {
+        if (prom->color == '.')
         {
-            struct bkt* add = (struct bkt*)malloc(sizeof(struct bkt));
-            add -> element = bracket;
-            add->next = NULL;
-            add->prev = prom;
-            prom->next = add;
-            return 0;
+            add->left = prom;
+            prom->right = add;
         }
-    if (bracket == ')')
-    {
-        if (prom -> element == '(')
-            {
 
-                pop(root, prom);
-                return 0;
-            }
-            else return 1;
-    }
-    if (bracket == '{')
-    {
-        if (prom -> element == '}')
-            {
-                pop(root, prom);
-                return 0;
-            }
-            else return 1;
-    }
-
-    return 1;
-}
-
-int pop (struct bkt* root, struct bkt* tmp)
-{
-    if (!root) return 1;
-
-    if (!tmp -> next)
+        if (x > 0)
         {
-            tmp -> prev -> next = NULL;
-            free(tmp);
-            return 0;
+            struct Square* tmp = prom;
+            int i;
+            for(i = 1; i < m; i++)
+            {
+                tmp = tmp->prev;
+            }
         }
-    struct bkt* prom = root;
-    while (prom -> next)
-    {
-        if (prom == tmp) break;
-        else prom = prom -> next;
     }
 
-    prom->prev->next = prom -> next;
-    prom -> next -> prev = prom -> prev;
-    free(prom);
+    add->x = x;
+    add->y = y;
+    add->color = color;
+    add->next = NULL;
+    add->prev = prom;
+    prom->next = add;
     return 0;
 }
+
 int main()
-
 {
-    char word;
+    int n;
+    int m;
+    int i;
+    int j;
+    char sign;
 
-    struct bkt* root = new_list();
-    word = getchar();
+    scanf("%d %d", &n, &m);
 
-    if ((word == '}') || (word == ')'))
-        {
-            printf("wrong");
-            return;
-        }
+    int* path = (int*)malloc((sizeof(int*) * n * m));
+    struct Square* root = new_square();
 
-    while (word != "\n")
+    for(i = 0; i < n; i++)
     {
-        if (push(root, word) != 0)
+        for(j = 0; j < m; j++)
         {
-            printf("wrong");
-            return;
+            scanf("%c", sign);
+            int err = add_square(root, i, j, sign, m);
         }
-
-        word = getchar();
-
     }
 
-    print_list(root);
-        printf("%c",  root -> next -> element);
-    printf((root->next)?"wrong":"right");
-
-
+    free(path);
     return 0;
 }
