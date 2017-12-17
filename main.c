@@ -1,121 +1,127 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct rec {
-    char name[50];
-    char number[50];
-    struct record* next;
-}rec;
-
-rec* create_rec(char name[], char number[])
+struct bkt
 {
-rec* pstr =(rec*) malloc(1 * sizeof(rec));
-strcpy(pstr->number, number);
-strcpy(pstr->name, name);
-pstr->next = NULL;
-return pstr;
+    int number;
+    char element;
+    struct bkt* prev;
+    struct bkt* next;
+} bkt;
 
-
-void find_rec(rec* record, char* strname)
+struct bkt* new_list()
 {
-    while(strcmp(strname, record -> name) != 0 && (record -> next != NULL))
+    struct bkt* root = (struct bkt*)malloc(sizeof(struct bkt));
+    root->next = NULL;
+    root->prev = NULL;
+    return root;
+}
+
+void print_list(struct bkt* root)
+{
+     if (!root -> next)
+     {
+         return;
+     }
+     struct bkt* prom = root -> next;
+     while (prom->next)
     {
-        record = record -> next;
+        printf("%c", prom -> element);
+        prom = prom -> next;
     }
-    if (strcmp(strname, record -> name) != 0)
+}
+int push (struct bkt* root, char bracket)
+{
+    if (!root) return 1;
+    struct bkt* prom = root;
+    while (prom->next)
     {
-        printf("NO");
-        return 0;
+        prom = prom->next;
     }
-    printf("%s\n", record -> number);
+    if ((bracket == '(') || (bracket == '{'))
+        {
+            struct bkt* add = (struct bkt*)malloc(sizeof(struct bkt));
+            add -> element = bracket;
+            add->next = NULL;
+            add->prev = prom;
+            prom->next = add;
+            return 0;
+        }
+    if (bracket == ')')
+    {
+        if (prom -> element == '(')
+            {
+
+                pop(root, prom);
+                return 0;
+            }
+            else return 1;
+    }
+    if (bracket == '{')
+    {
+        if (prom -> element == '}')
+            {
+                pop(root, prom);
+                return 0;
+            }
+            else return 1;
+    }
+
+    return 1;
+}
+
+int pop (struct bkt* root, struct bkt* tmp)
+{
+    if (!root) return 1;
+
+    if (!tmp -> next)
+        {
+            tmp -> prev -> next = NULL;
+            free(tmp);
+            return 0;
+        }
+    struct bkt* prom = root;
+    while (prom -> next)
+    {
+        if (prom == tmp) break;
+        else prom = prom -> next;
+    }
+
+    prom->prev->next = prom -> next;
+    prom -> next -> prev = prom -> prev;
+    free(prom);
     return 0;
 }
-
-void insert_into_list(rec* man, char* maname, char* manumber)
-{
-    while (man -> next != NULL)
-    {
-        if (strcmp(man -> name, maname) == 0)
-        {
-            char old[50];
-            strcpy(old, man -> number);
-            strcpy(man -> number, manumber);
-            printf("Changed. Old value = ", "&s\n", old);
-            return 0;
-        }
-        man = man -> next;
-    }
-    if ((strcmp(man -> name, maname) == 0) && (man -> next == NULL))
-    {
-            char old[50];
-            strcpy(old, man -> number);
-            strcpy(man -> number, manumber);
-            printf("Changed. Old value = ", "&s\n", old);
-            return 0;
-    }
-    create_rec(maname, manumber);
-}
 int main()
+
 {
-    char rootname, rootnumber;
-    rec* root = create_rec(rootname, rootnumber);
+    char word;
 
-    char insert = "I";
-    char find = "F";
-    char str[100];
-    int i = 0, j = 0;
-    char com[10];
+    struct bkt* root = new_list();
+    word = getchar();
 
-    FILE* f = fopen("input.txt", "r");
-    if (f == NULL) { printf("file not found\n"); return -1;}
+    if ((word == '}') || (word == ')'))
+        {
+            printf("wrong");
+            return;
+        }
 
-    while (fgets(str, 100, f))
+    while (word != "\n")
     {
-        while (str[i] != ' ')
+        if (push(root, word) != 0)
         {
-            com[i] = str[i];
-            i++;
+            printf("wrong");
+            return;
         }
-        i++;
-        if (strcmp(com[0], find) == 0)
-        {
-            char name1[50];
-            while (str[i] != "\n")
-            {
-                name1[j] = str[i];
-                i++;
-                j++;
-            }
-            name1[j] = "\0";
-            find_rec(root, name);
-        }
-        if (strcmp(com[0], insert) == 0)
-        {
-            j = 0;
-            char name2[50];
-            while (str[i] != " ")
-            {
-                name2[j] = str[i];
-                i++;
-                j++;
-            }
-            name2[j] = "\0";
-            i++;
-            j = 0;
 
-            char strnumber[50];
-            while (str[i] != "\n")
-            {
-                strnumber[j] = str[i];
-                i++;
-                j++;
-            }
-            strnumber[j] = "\0";
-            insert_into_list(root, name2, strnumber);
+        word = getchar();
 
-        }
     }
-    fclose(f);
-    free(pstr);
+
+    print_list(root);
+        printf("%c",  root -> next -> element);
+    printf((root->next)?"wrong":"right");
+
+
     return 0;
 }
