@@ -14,6 +14,11 @@ struct Square
     int x;
     int y;
     char color;
+
+    int dleft;
+    int dright;
+    int dup;
+    int ddown;
 } Square;
 
 struct Square* new_square()
@@ -24,7 +29,7 @@ struct Square* new_square()
     return root;
 }
 
-int add_square (struct Square* root, int x, int y, char color, int m);
+int add_square (struct Square* root, int x, int y, char color, int m)
 {
     if (!root) return 1;
     struct Square* prom = root;
@@ -64,9 +69,53 @@ int add_square (struct Square* root, int x, int y, char color, int m);
     add->next = NULL;
     add->prev = prom;
     prom->next = add;
+
+    add->dleft = 0;
+    add->dright = 0;
+    add->dup = 0;
+    add->ddown = 0;
     return 0;
 }
 
+int* pathfinder(struct Square* root, int* path, int n, int m)
+{
+    struct Square* prom = root -> next;
+    int direction = 0;
+
+    while((prom -> x != n) && (prom -> y != m))
+    {
+        if ((prom -> dright = 0) && (prom -> right))
+        {
+            prom -> dright = 1;
+            printf(prom -> x, prom -> y);
+            prom = prom ->right;
+            break;
+        }
+        if ((prom -> ddown = 0) && (prom -> down))
+        {
+            prom -> ddown = 1;
+            printf(prom -> x, prom -> y);
+            prom = prom ->down;
+            break;
+        }
+        if ((prom -> dleft = 0) && (prom -> left))
+        {
+            prom -> dleft = 1;
+            printf(prom -> x, prom -> y);
+            prom = prom ->left;
+            break;
+        }
+        if ((prom -> dup = 0) && (prom -> up))
+        {
+            prom -> dup = 1;
+            printf(prom -> x, prom -> y);
+            prom = prom ->up;
+            break;
+        }
+    }
+
+    return path;
+}
 int main()
 {
     int n;
@@ -78,16 +127,22 @@ int main()
     scanf("%d %d", &n, &m);
 
     int* path = (int*)malloc((sizeof(int*) * n * m));
+
     struct Square* root = new_square();
+
 
     for(i = 0; i < n; i++)
     {
         for(j = 0; j < m; j++)
         {
-            scanf("%c", sign);
+            sign = getchar();
             int err = add_square(root, i, j, sign, m);
         }
+        sign = getchar();
+
     }
+
+    path = pathfinder(root, path, n, m);
 
     free(path);
     return 0;
