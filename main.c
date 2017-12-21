@@ -1,149 +1,220 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-struct Square
+struct Duo
 {
-    struct Square* next;
-    struct Square* prev;
+    int number;
+    int isRoot;
+    struct Duo* prev;
+    struct Duo* next;
+} Duo;
 
-    struct Square* left;
-    struct Square* right;
-    struct Square* up;
-    struct Square* down;
-
-    int x;
-    int y;
-    char color;
-
-    int dleft;
-    int dright;
-    int dup;
-    int ddown;
-} Square;
-
-struct Square* new_square()
+struct Duo* new_list()
 {
-    struct Square* root = (struct Square*)malloc(sizeof(struct Square));
+    struct Duo* root = (struct Duo*)malloc(sizeof(struct Duo));
+    root->isRoot = 1;
     root->next = NULL;
     root->prev = NULL;
     return root;
 }
 
-int add_square (struct Square* root, int x, int y, char color, int m)
+int list_delete(struct Duo* root)
+{
+    if(!root)return 1;
+    struct Duo* f = root;
+    struct Duo* next;
+    while (f->next)
+    {
+        next = f->next;
+        free(f);
+        f = next;
+    }
+    free(f);
+    return 0;
+}
+
+int push (struct Duo* root, int a)
 {
     if (!root) return 1;
-    struct Square* prom = root;
+    struct Duo* prom = root;
     while (prom->next)
     {
         prom = prom->next;
     }
-    struct Square* add = (struct Square*)malloc(sizeof(struct Square));
-
-        add->left = NULL;
-        add->right = NULL;
-        add->up= NULL;
-        add->down = NULL;
-
-    if (color == '.')
-    {
-        if (prom->color == '.')
-        {
-            add->left = prom;
-            prom->right = add;
-        }
-
-        if (x > 0)
-        {
-            struct Square* tmp = prom;
-            int i;
-            for(i = 1; i < m; i++)
-            {
-                tmp = tmp->prev;
-            }
-        }
-    }
-
-    add->x = x;
-    add->y = y;
-    add->color = color;
+    struct Duo* add = (struct Duo*)malloc(sizeof(struct Duo));
+    add->isRoot = 0;
+    add->number = a;
     add->next = NULL;
     add->prev = prom;
     prom->next = add;
-
-    add->dleft = 0;
-    add->dright = 0;
-    add->dup = 0;
-    add->ddown = 0;
     return 0;
 }
 
-int* pathfinder(struct Square* root, int* path, int n, int m)
+int unshift (struct Duo* root, int a)
 {
-    struct Square* prom = root -> next;
-    int direction = 0;
-
-    while((prom -> x != n) && (prom -> y != m))
+    if (!root) return 1;
+    struct Duo* add = (struct Duo*)malloc(sizeof(struct Duo));
+    add->isRoot = 0;
+    add->number = a;
+    if(root->next)
     {
-        if ((prom -> dright = 0) && (prom -> right))
+        add->next = root->next;
+        add->prev = root;
+        add->next->prev = add;
+        root->next = add;
+    }
+    else
+    {
+        root->next = add;
+        add->prev = root;
+    }
+    return 0;
+}
+
+int shift(struct Duo* root, int* x)
+{
+    if (!root) return 1;
+    if(!root->next)return 1;
+    if(root->next->next)
+    {
+        struct Duo* prom = root->next->next;
+        prom->prev = root;
+        *x = root->next->number;
+        free(root->next);
+        root->next = prom;
+    }
+    else
+    {
+        *x = root->next->number;
+        free(root->next);
+        root->next = NULL;
+    }
+    return 0;
+}
+
+int pop (struct Duo* root, int* x)
+{
+    if (!root) return 1;
+    if(!root->next)return 1;
+
+    struct Duo* prom = root;
+    while (prom->next)
+    {
+        prom = prom->next;
+    }
+    *x = prom->number;
+    prom->prev->next = NULL;
+    free(prom);
+    return 0;
+}
+
+void reverse (struct Duo* root)
+{
+    if (!root) return;
+    if (!root->next)return;
+    struct Duo* prom = root->next;
+    prom->prev = NULL;
+    struct Duo* swp;
+
+    while (prom->next)
+    {
+        swp = prom->next;
+        prom->next = prom->prev;
+        prom->prev = swp;
+        prom = prom->prev;
+    }
+    prom->next = prom->prev;
+    prom->prev = root;
+    root->next = prom;
+}
+
+int dedup (struct Duo* root, int a)
+{
+    if (!root) return 1;
+    if(!root->next)return 1;
+
+    struct Duo* prom = root;
+    int f = 0;
+    while (prom->next)
+    {
+        if ((a == prom -> number) && (f == 0))
         {
-            prom -> dright = 1;
-            printf(prom -> x, prom -> y);
-            prom = prom ->right;
-            break;
+            f = 1;
+            prom = prom -> next;
         }
-        if ((prom -> ddown = 0) && (prom -> down))
+
+        if ((a == prom -> number) && (f > 0))
         {
-            prom -> ddown = 1;
-            printf(prom -> x, prom -> y);
-            prom = prom ->down;
-            break;
+            prom->prev->next = prom -> next;
+            prom -> next -> prev = prom -> prev;
+            free(prom);
         }
-        if ((prom -> dleft = 0) && (prom -> left))
-        {
-            prom -> dleft = 1;
-            printf(prom -> x, prom -> y);
-            prom = prom ->left;
-            break;
-        }
-        if ((prom -> dup = 0) && (prom -> up))
-        {
-            prom -> dup = 1;
-            printf(prom -> x, prom -> y);
-            prom = prom ->up;
-            break;
-        }
+                prom = prom -> next;
     }
 
-    return path;
+    if ((a == prom -> number) && (f > 0))
+        {
+            if (prom -> next == NULL)
+            {
+                prom -> prev -> next = NULL;
+                prom -> prev = NULL;
+                free(prom);
+            }
+            else
+            {
+                prom->prev->next = prom -> next;
+                prom -> next -> prev = prom -> prev;
+                free(prom);
+            }
+        }
+
+        if (f == 0)
+        {
+            printf("no matches\n");
+        }
+
+    return 0;
 }
+
+void print_list(struct Duo* root)
+{
+     if (!root -> next)
+     {
+         return;
+     }
+     struct Duo* prom = root -> next;
+     while (prom->next)
+    {
+        printf("%d\n", prom -> number);
+        prom = prom -> next;
+    }
+    printf("%d\n", prom -> number);
+}
+
 int main()
 {
-    int n;
-    int m;
+    struct Duo* root = new_list();
+    int err;
     int i;
-    int j;
-    char sign;
+    /*
+//err = pop (root, &i);
+//err = unshift (root, 0);
+    reverse(root);
+    err = shift (root, &i);
+    err = list_delete (root);
+    printf ("%d", i);*/
 
-    scanf("%d %d", &n, &m);
+    int a;
+    scanf ("%d", &a);
 
-    int* path = (int*)malloc((sizeof(int*) * n * m));
+  push(root, 5);
+  push(root, 3);
+  push(root, 3);
+  push(root, 5);
+  push(root, 5);
 
-    struct Square* root = new_square();
+    dedup(root, a);
+   print_list(root);
 
-
-    for(i = 0; i < n; i++)
-    {
-        for(j = 0; j < m; j++)
-        {
-            sign = getchar();
-            int err = add_square(root, i, j, sign, m);
-        }
-        sign = getchar();
-
-    }
-
-    path = pathfinder(root, path, n, m);
-
-    free(path);
-    return 0;
+    return (0);
 }
